@@ -1,4 +1,4 @@
-name: Build HAFIZ Yusuf Shuaibu Bauchi Complete Qur'an APK
+name: Build Android APK
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -23,30 +23,24 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Set up Gradle 8.7
+      - name: Install Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
 
-      - name: Extract FINAL BUILD project
+      - name: Extract project
         run: |
-          rm -rf build-project
-          mkdir build-project
-          unzip -q HAFIZ-Yusuf-Shuaibu-Bauchi-Complete-Quran-FINAL-BUILD.zip -d build-project
-
-      - name: Check Android project
-        working-directory: build-project
-        run: |
-          echo "Checking project..."
+          unzip -q HAFIZ-Yusuf-Shuaibu-Bauchi-Complete-Quran-FINAL-BUILD.zip
+          echo "Project extracted"
           ls -la
-          ls -la app
 
-      - name: Build Debug APK
-        working-directory: build-project
-        run: gradle assembleDebug --stacktrace
+      - name: Build APK
+        run: |
+          cd app
+          gradle assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: HAFIZ-Yusuf-Shuaibu-Bauchi-Complete-Quran-APK
-          path
+          path: app/build/outputs/apk/debug/*.apk
