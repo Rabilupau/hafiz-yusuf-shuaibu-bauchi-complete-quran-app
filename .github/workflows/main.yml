@@ -27,7 +27,7 @@ jobs:
 
       - name: Extract Quran App
         run: |
-          unzip -q "Quran-Audio-App Original.zip"
+          unzip -q "Qur'an-Audio-App Original.zip"
           echo "Quran app extracted successfully"
           ls -la
 
