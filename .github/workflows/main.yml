@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build HAFIZ Yusuf Shuaibu Bauchi Complete Quran APK
 
 on:
   workflow_dispatch:
@@ -25,28 +25,194 @@ jobs:
         with:
           gradle-version: '8.7'
 
-      - name: Extract Quran App
+      - name: Extract Quran Web App
         run: |
-          unzip -q "Qur'an-Audio-App Original.zip"
-          echo "Files extracted:"
-          find . -maxdepth 4 -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" -o -name "build.gradle" \) | sort
+          unzip -q "Qur'an-Audio-App Original.zip" -d quran-web
+          echo "Quran Web App extracted"
+          find quran-web -maxdepth 3 -type f | sort
 
-      - name: Find Android project
+      - name: Create Android Project
         run: |
-          PROJECT_DIR=$(find . -type f -name "settings.gradle" -o -type f -name "settings.gradle.kts" | head -n 1 | xargs -r dirname)
+          mkdir -p android-app/app/src/main/java/com/rabilu/quranaudio
+          mkdir -p android-app/app/src/main/assets
+          mkdir -p android-app/app/src/main/res/drawable
 
-          if [ -z "$PROJECT_DIR" ]; then
-            echo "ERROR: Android project was not found."
-            echo "Folders and files inside ZIP:"
-            find . -maxdepth 5 -type f | sort
-            exit 1
-          fi
+          cat > android-app/settings.gradle <<'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
 
-          echo "Android project found at: $PROJECT_DIR"
-          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+
+          rootProject.name = "HAFIZ-Yusuf-Shuaibu-Bauchi-Complete-Quran"
+          include(":app")
+          EOF
+
+          cat > android-app/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application' version '8.6.1' apply false
+          }
+          EOF
+
+          cat > android-app/gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          android.useAndroidX=false
+          android.enableJetifier=false
+          EOF
+
+          cat > android-app/app/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application'
+          }
+
+          android {
+              namespace 'com.rabilu.quranaudio'
+              compileSdk 35
+
+              defaultConfig {
+                  applicationId 'com.rabilu.quranaudio'
+                  minSdk 23
+                  targetSdk 35
+                  versionCode 1
+                  versionName '1.0'
+              }
+
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+          }
+          EOF
+
+          cat > android-app/app/src/main/AndroidManifest.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <uses-permission android:name="android.permission.INTERNET" />
+
+              <application
+                  android:allowBackup="true"
+                  android:icon="@drawable/icon"
+                  android:label="HAFIZ Yusuf Shuaibu Bauchi Complete Qur'an"
+                  android:theme="@style/AppTheme"
+                  android:usesCleartextTraffic="true">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:screenOrientation="portrait"
+                      android:exported="true">
+
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+
+                  </activity>
+
+              </application>
+
+          </manifest>
+          EOF
+
+          mkdir -p android-app/app/src/main/res/values
+
+          cat > android-app/app/src/main/res/values/styles.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+                  <item name="android:fontFamily">sans</item>
+                  <item name="android:colorAccent">#075e54</item>
+                  <item name="android:navigationBarColor">#075e54</item>
+                  <item name="android:statusBarColor">#075e54</item>
+                  <item name="android:windowLightStatusBar">false</item>
+              </style>
+          </resources>
+          EOF
+
+          cat > android-app/app/src/main/java/com/rabilu/quranaudio/MainActivity.java <<'EOF'
+          package com.rabilu.quranaudio;
+
+          import android.app.Activity;
+          import android.os.Bundle;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+
+          public class MainActivity extends Activity {
+
+              private WebView webView;
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+
+                  webView = new WebView(this);
+                  setContentView(webView);
+
+                  WebSettings settings = webView.getSettings();
+
+                  settings.setJavaScriptEnabled(true);
+                  settings.setDomStorageEnabled(true);
+                  settings.setAllowFileAccess(true);
+                  settings.setAllowContentAccess(true);
+                  settings.setMediaPlaybackRequiresUserGesture(false);
+
+                  webView.setWebViewClient(new WebViewClient());
+
+                  webView.loadUrl("file:///android_asset/index.html");
+              }
+
+              @Override
+              public void onBackPressed() {
+                  if (webView != null && webView.canGoBack()) {
+                      webView.goBack();
+                  } else {
+                      super.onBackPressed();
+                  }
+              }
+          }
+          EOF
+
+      - name: Copy Quran App Files
+        run: |
+          cp "quran-web/index.html" android-app/app/src/main/assets/
+          cp "quran-web/style.css" android-app/app/src/main/assets/
+          cp "quran-web/script.js" android-app/app/src/main/assets/
+          cp "quran-web/manifest.json" android-app/app/src/main/assets/
+          cp "quran-web/service-worker.js" android-app/app/src/main/assets/
+
+          cp -r "quran-web/assets" android-app/app/src/main/assets/
+          cp -r "quran-web/audio" android-app/app/src/main/assets/
+
+          cp "quran-web/assets/icon.png" android-app/app/src/main/res/drawable/icon.png
+
+          echo "Quran app files copied successfully."
+
+      - name: Check Android Project
+        run: |
+          test -f android-app/settings.gradle
+          test -f android-app/build.gradle
+          test -f android-app/app/build.gradle
+          test -f android-app/app/src/main/AndroidManifest.xml
+          test -f android-app/app/src/main/assets/index.html
+          test -f android-app/app/src/main/assets/script.js
+          test -f android-app/app/src/main/assets/style.css
+          test -f android-app/app/src/main/assets/assets/icon.png
+          test -f android-app/app/src/main/res/drawable/icon.png
+          echo "Android project is ready."
 
       - name: Build APK
-        working-directory: ${{ env.PROJECT_DIR }}
+        working-directory: android-app
         run: |
           gradle assembleDebug --no-daemon --stacktrace
 
@@ -54,5 +220,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: HAFIZ-Yusuf-Shuaibu-Bauchi-Complete-Quran-APK
-          path: "${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk"
+          path: "android-app/app/build/outputs/apk/debug/*.apk"
           if-no-files-found: error
