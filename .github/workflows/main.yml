@@ -28,18 +28,25 @@ jobs:
       - name: Extract Quran App
         run: |
           unzip -q "Qur'an-Audio-App Original.zip"
-          echo "Quran app extracted successfully"
-          ls -la
+          echo "Files extracted:"
+          find . -maxdepth 4 -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" -o -name "build.gradle" \) | sort
 
-      - name: Check Android project
+      - name: Find Android project
         run: |
-          test -f settings.gradle
-          test -f build.gradle
-          test -f app/build.gradle
-          test -f app/src/main/AndroidManifest.xml
-          echo "Android project is ready"
+          PROJECT_DIR=$(find . -type f -name "settings.gradle" -o -type f -name "settings.gradle.kts" | head -n 1 | xargs -r dirname)
+
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "ERROR: Android project was not found."
+            echo "Folders and files inside ZIP:"
+            find . -maxdepth 5 -type f | sort
+            exit 1
+          fi
+
+          echo "Android project found at: $PROJECT_DIR"
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
       - name: Build APK
+        working-directory: ${{ env.PROJECT_DIR }}
         run: |
           gradle assembleDebug --no-daemon --stacktrace
 
@@ -47,5 +54,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: HAFIZ-Yusuf-Shuaibu-Bauchi-Complete-Quran-APK
-          path: "app/build/outputs/apk/debug/*.apk"
+          path: "${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk"
           if-no-files-found: error
