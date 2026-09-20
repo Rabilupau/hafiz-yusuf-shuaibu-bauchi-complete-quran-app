@@ -36,6 +36,7 @@ jobs:
           mkdir -p android-app/app/src/main/java/com/rabilu/quranaudio
           mkdir -p android-app/app/src/main/assets
           mkdir -p android-app/app/src/main/res/drawable
+          mkdir -p android-app/app/src/main/res/values
 
           cat > android-app/settings.gradle <<'EOF'
           pluginManagement {
@@ -124,8 +125,6 @@ jobs:
           </manifest>
           EOF
 
-          mkdir -p android-app/app/src/main/res/values
-
           cat > android-app/app/src/main/res/values/styles.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
@@ -142,83 +141,4 @@ jobs:
           cat > android-app/app/src/main/java/com/rabilu/quranaudio/MainActivity.java <<'EOF'
           package com.rabilu.quranaudio;
 
-          import android.app.Activity;
-          import android.os.Bundle;
-          import android.webkit.WebSettings;
-          import android.webkit.WebView;
-          import android.webkit.WebViewClient;
-
-          public class MainActivity extends Activity {
-
-              private WebView webView;
-
-              @Override
-              protected void onCreate(Bundle savedInstanceState) {
-                  super.onCreate(savedInstanceState);
-
-                  webView = new WebView(this);
-                  setContentView(webView);
-
-                  WebSettings settings = webView.getSettings();
-
-                  settings.setJavaScriptEnabled(true);
-                  settings.setDomStorageEnabled(true);
-                  settings.setAllowFileAccess(true);
-                  settings.setAllowContentAccess(true);
-                  settings.setMediaPlaybackRequiresUserGesture(false);
-
-                  webView.setWebViewClient(new WebViewClient());
-
-                  webView.loadUrl("file:///android_asset/index.html");
-              }
-
-              @Override
-              public void onBackPressed() {
-                  if (webView != null && webView.canGoBack()) {
-                      webView.goBack();
-                  } else {
-                      super.onBackPressed();
-                  }
-              }
-          }
-          EOF
-
-      - name: Copy Quran App Files
-        run: |
-          cp "quran-web/index.html" android-app/app/src/main/assets/
-          cp "quran-web/style.css" android-app/app/src/main/assets/
-          cp "quran-web/script.js" android-app/app/src/main/assets/
-          cp "quran-web/manifest.json" android-app/app/src/main/assets/
-          cp "quran-web/service-worker.js" android-app/app/src/main/assets/
-
-          cp -r "quran-web/assets" android-app/app/src/main/assets/
-          cp -r "quran-web/audio" android-app/app/src/main/assets/
-
-          cp "quran-web/assets/icon.png" android-app/app/src/main/res/drawable/icon.png
-
-          echo "Quran app files copied successfully."
-
-      - name: Check Android Project
-        run: |
-          test -f android-app/settings.gradle
-          test -f android-app/build.gradle
-          test -f android-app/app/build.gradle
-          test -f android-app/app/src/main/AndroidManifest.xml
-          test -f android-app/app/src/main/assets/index.html
-          test -f android-app/app/src/main/assets/script.js
-          test -f android-app/app/src/main/assets/style.css
-          test -f android-app/app/src/main/assets/assets/icon.png
-          test -f android-app/app/src/main/res/drawable/icon.png
-          echo "Android project is ready."
-
-      - name: Build APK
-        working-directory: android-app
-        run: |
-          gradle assembleDebug --no-daemon --stacktrace
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: HAFIZ-Yusuf-Shuaibu-Bauchi-Complete-Quran-APK
-          path: "android-app/app/build/outputs/apk/debug/*.apk"
-          if-no-files-found: error
+         
