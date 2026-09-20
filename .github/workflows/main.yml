@@ -11,32 +11,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Java 17
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.7'
+          gradle-version: "8.7"
 
-      - name: Extract Quran Web App
+      - name: Extract Web App
+        shell: bash
         run: |
           set -e
-
           unzip -q "Qur'an-Audio-App Original.zip" -d quran-web
+          echo "Web app extracted"
 
-          echo "Quran Web App extracted"
-
-          find quran-web -maxdepth 4 -type f | sort
-
-      - name: Check Quran Web App
+      - name: Check Files
+        shell: bash
         run: |
           set -e
 
@@ -45,15 +42,14 @@ jobs:
           test -f "quran-web/script.js"
           test -f "quran-web/manifest.json"
           test -f "quran-web/service-worker.js"
-
           test -f "quran-web/assets/icon.png"
           test -f "quran-web/assets/splash.png"
-
           test -d "quran-web/audio"
 
-          echo "Web app files OK"
+          echo "All web files found"
 
       - name: Create Android Project
+        shell: bash
         run: |
           set -e
 
@@ -85,7 +81,7 @@ jobs:
 
           cat > android-app/build.gradle <<'EOF'
           plugins {
-              id 'com.android.application' version '8.6.1' apply false
+              id "com.android.application" version "8.6.1" apply false
           }
           EOF
 
@@ -97,19 +93,19 @@ jobs:
 
           cat > android-app/app/build.gradle <<'EOF'
           plugins {
-              id 'com.android.application'
+              id "com.android.application"
           }
 
           android {
-              namespace 'com.rabilu.quranaudio'
+              namespace "com.rabilu.quranaudio"
               compileSdk 35
 
               defaultConfig {
-                  applicationId 'com.rabilu.quranaudio'
+                  applicationId "com.rabilu.quranaudio"
                   minSdk 23
                   targetSdk 35
                   versionCode 1
-                  versionName '1.0'
+                  versionName "1.0"
               }
 
               compileOptions {
@@ -121,19 +117,15 @@ jobs:
 
           cat > android-app/app/src/main/AndroidManifest.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-          <manifest
-              xmlns:android="http://schemas.android.com/apk/res/android">
-
-              <uses-permission
-                  android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.INTERNET" />
 
               <application
                   android:allowBackup="true"
                   android:icon="@drawable/icon"
                   android:label="HAFIZ Yusuf Shuaibu Bauchi Complete Qur'an"
-                  android:theme="@style/AppTheme"
-                  android:usesCleartextTraffic="true">
+                  android:theme="@style/AppTheme">
 
                   <activity
                       android:name=".MainActivity"
@@ -154,7 +146,6 @@ jobs:
 
           cat > android-app/app/src/main/res/values/styles.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
-
           <resources>
 
               <style
@@ -163,8 +154,8 @@ jobs:
 
                   <item name="android:fontFamily">sans</item>
                   <item name="android:colorAccent">#075e54</item>
-                  <item name="android:navigationBarColor">#075e54</item>
                   <item name="android:statusBarColor">#075e54</item>
+                  <item name="android:navigationBarColor">#075e54</item>
                   <item name="android:windowLightStatusBar">false</item>
 
               </style>
@@ -189,11 +180,9 @@ jobs:
 
               @Override
               protected void onCreate(Bundle savedInstanceState) {
-
                   super.onCreate(savedInstanceState);
 
                   webView = new WebView(this);
-
                   setContentView(webView);
 
                   WebSettings settings = webView.getSettings();
@@ -204,9 +193,7 @@ jobs:
                   settings.setAllowContentAccess(true);
                   settings.setMediaPlaybackRequiresUserGesture(false);
 
-                  webView.setWebViewClient(
-                      new WebViewClient()
-                  );
+                  webView.setWebViewClient(new WebViewClient());
 
                   webView.addJavascriptInterface(
                       new AndroidShare(),
@@ -280,73 +267,48 @@ jobs:
           }
           EOF
 
-      - name: Copy Quran App Files
+      - name: Copy App Files
+        shell: bash
         run: |
           set -e
 
-          cp "quran-web/index.html" \
-             "android-app/app/src/main/assets/"
+          cp "quran-web/index.html" "android-app/app/src/main/assets/"
+          cp "quran-web/style.css" "android-app/app/src/main/assets/"
+          cp "quran-web/script.js" "android-app/app/src/main/assets/"
+          cp "quran-web/manifest.json" "android-app/app/src/main/assets/"
+          cp "quran-web/service-worker.js" "android-app/app/src/main/assets/"
 
-          cp "quran-web/style.css" \
-             "android-app/app/src/main/assets/"
-
-          cp "quran-web/script.js" \
-             "android-app/app/src/main/assets/"
-
-          cp "quran-web/manifest.json" \
-             "android-app/app/src/main/assets/"
-
-          cp "quran-web/service-worker.js" \
-             "android-app/app/src/main/assets/"
-
-          cp -r "quran-web/assets" \
-             "android-app/app/src/main/assets/"
-
-          cp -r "quran-web/audio" \
-             "android-app/app/src/main/assets/"
+          cp -r "quran-web/assets" "android-app/app/src/main/assets/"
+          cp -r "quran-web/audio" "android-app/app/src/main/assets/"
 
           cp "quran-web/assets/icon.png" \
              "android-app/app/src/main/res/drawable/icon.png"
 
-          echo "Quran app files copied successfully."
-
-      - name: Fix Share Function
+      - name: Fix Share
+        shell: bash
         run: |
-          set -e
-
           python3 <<'PY'
           from pathlib import Path
 
-          path = Path(
-              "android-app/app/src/main/assets/script.js"
-          )
+          p = Path("android-app/app/src/main/assets/script.js")
+          s = p.read_text(encoding="utf-8")
 
-          text = path.read_text(encoding="utf-8")
+          marker = "/* =====================================================\n   SHARE\n   ===================================================== */"
 
-          start_marker = (
-              "/* =====================================================\n"
-              "   SHARE\n"
-              "   ===================================================== */"
-          )
-
-          start = text.find(start_marker)
+          start = s.find(marker)
 
           if start == -1:
-              raise SystemExit(
-                  "ERROR: SHARE section was not found."
-              )
+              raise SystemExit("Share section not found")
 
-          next_marker = text.find(
+          end = s.find(
               "/* =====================================================",
-              start + len(start_marker)
+              start + len(marker)
           )
 
-          if next_marker == -1:
-              raise SystemExit(
-                  "ERROR: Next script section was not found."
-              )
+          if end == -1:
+              raise SystemExit("End of Share section not found")
 
-          new_share = r'''/* =====================================================
+          replacement = r'''/* =====================================================
    SHARE
    ===================================================== */
 
@@ -412,9 +374,7 @@ if (shareAppButton) {
 
                     await navigator.clipboard.writeText(url);
 
-                    showToast(
-                        "App link copied"
-                    );
+                    showToast("App link copied");
 
                     return;
                 }
@@ -437,54 +397,30 @@ if (shareAppButton) {
 
 '''
 
-          text = (
-              text[:start]
-              + new_share
-              + text[next_marker:]
-          )
-
-          path.write_text(
-              text,
+          p.write_text(
+              s[:start] + replacement + s[end:],
               encoding="utf-8"
           )
 
-          print("Share function fixed successfully.")
+          print("Share function fixed")
           PY
 
-      - name: Verify Android Project
+      - name: Verify Project
+        shell: bash
         run: |
           set -e
 
           test -f "android-app/settings.gradle"
           test -f "android-app/build.gradle"
           test -f "android-app/app/build.gradle"
-
-          test -f \
-            "android-app/app/src/main/AndroidManifest.xml"
-
-          test -f \
-            "android-app/app/src/main/java/com/rabilu/quranaudio/MainActivity.java"
-
-          test -f \
-            "android-app/app/src/main/assets/index.html"
-
-          test -f \
-            "android-app/app/src/main/assets/style.css"
-
-          test -f \
-            "android-app/app/src/main/assets/script.js"
-
-          test -f \
-            "android-app/app/src/main/assets/assets/icon.png"
-
-          test -f \
-            "android-app/app/src/main/assets/assets/splash.png"
-
-          test -f \
-            "android-app/app/src/main/res/drawable/icon.png"
-
-          test -d \
-            "android-app/app/src/main/assets/audio"
+          test -f "android-app/app/src/main/AndroidManifest.xml"
+          test -f "android-app/app/src/main/java/com/rabilu/quranaudio/MainActivity.java"
+          test -f "android-app/app/src/main/assets/index.html"
+          test -f "android-app/app/src/main/assets/style.css"
+          test -f "android-app/app/src/main/assets/script.js"
+          test -f "android-app/app/src/main/assets/assets/icon.png"
+          test -f "android-app/app/src/main/assets/assets/splash.png"
+          test -d "android-app/app/src/main/assets/audio"
 
           grep -q "AndroidShare" \
             "android-app/app/src/main/java/com/rabilu/quranaudio/MainActivity.java"
@@ -492,51 +428,36 @@ if (shareAppButton) {
           grep -q "AndroidShare" \
             "android-app/app/src/main/assets/script.js"
 
-          echo "Android project verified."
+          echo "Project verification successful"
 
-      - name: Build Debug APK
+      - name: Build APK
+        shell: bash
         working-directory: android-app
         run: |
           set -e
-
-          gradle assembleDebug \
-            --no-daemon \
-            --stacktrace
+          gradle assembleDebug --no-daemon --stacktrace
 
       - name: Verify APK
+        shell: bash
         run: |
           set -e
 
-          find android-app/app/build/outputs \
+          APK=$(find android-app/app/build/outputs \
             -type f \
             -name "*.apk" \
-            -print
+            -print -quit)
 
-          test -n "$(
-            find android-app/app/build/outputs \
-            -type f \
-            -name "*.apk" \
-            -print -quit
-          )"
+          if [ -z "$APK" ]; then
+            echo "APK was not created"
+            exit 1
+          fi
 
-          echo "APK found successfully."
+          echo "APK CREATED:"
+          echo "$APK"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: HAFIZ-Yusuf-Shuaibu-Bauchi-Complete-Quran-APK
-          path: "android-app/app/build/outputs/apk/debug/*.apk"
+          path: android-app/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
-
-      - name: Build Summary
-        run: |
-          echo "=========================================="
-          echo "APK BUILD SUCCESS"
-          echo "NATIVE SHARE ENABLED"
-          echo "APP ICON INCLUDED"
-          echo "=========================================="
-
-          find android-app/app/build/outputs \
-            -type f \
-            -name "*.apk" \
-            -print
