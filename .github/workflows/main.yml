@@ -12,17 +12,8 @@ jobs:
 
     steps:
 
-      # =====================================================
-      # 1. CHECKOUT
-      # =====================================================
-
       - name: Checkout repository
         uses: actions/checkout@v4
-
-
-      # =====================================================
-      # 2. JAVA 17
-      # =====================================================
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -30,20 +21,10 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-
-      # =====================================================
-      # 3. GRADLE
-      # =====================================================
-
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
-
-
-      # =====================================================
-      # 4. EXTRACT WEB APP
-      # =====================================================
 
       - name: Extract Quran Web App
         run: |
@@ -51,16 +32,9 @@ jobs:
 
           unzip -q "Qur'an-Audio-App Original.zip" -d quran-web
 
-          echo "======================================"
-          echo "QURAN WEB APP EXTRACTED"
-          echo "======================================"
+          echo "Quran Web App extracted"
 
           find quran-web -maxdepth 4 -type f | sort
-
-
-      # =====================================================
-      # 5. CHECK WEB APP FILES
-      # =====================================================
 
       - name: Check Quran Web App
         run: |
@@ -77,14 +51,7 @@ jobs:
 
           test -d "quran-web/audio"
 
-          echo "======================================"
-          echo "WEB APP FILES OK"
-          echo "======================================"
-
-
-      # =====================================================
-      # 6. CREATE ANDROID PROJECT
-      # =====================================================
+          echo "Web app files OK"
 
       - name: Create Android Project
         run: |
@@ -94,11 +61,6 @@ jobs:
           mkdir -p android-app/app/src/main/assets
           mkdir -p android-app/app/src/main/res/drawable
           mkdir -p android-app/app/src/main/res/values
-
-
-          # -------------------------------------------------
-          # SETTINGS.GRADLE
-          # -------------------------------------------------
 
           cat > android-app/settings.gradle <<'EOF'
           pluginManagement {
@@ -111,7 +73,6 @@ jobs:
 
           dependencyResolutionManagement {
               repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-
               repositories {
                   google()
                   mavenCentral()
@@ -119,14 +80,8 @@ jobs:
           }
 
           rootProject.name = "HAFIZ-Yusuf-Shuaibu-Bauchi-Complete-Quran"
-
           include(":app")
           EOF
-
-
-          # -------------------------------------------------
-          # ROOT BUILD.GRADLE
-          # -------------------------------------------------
 
           cat > android-app/build.gradle <<'EOF'
           plugins {
@@ -134,21 +89,11 @@ jobs:
           }
           EOF
 
-
-          # -------------------------------------------------
-          # GRADLE.PROPERTIES
-          # -------------------------------------------------
-
           cat > android-app/gradle.properties <<'EOF'
           org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
           android.useAndroidX=false
           android.enableJetifier=false
           EOF
-
-
-          # -------------------------------------------------
-          # APP BUILD.GRADLE
-          # -------------------------------------------------
 
           cat > android-app/app/build.gradle <<'EOF'
           plugins {
@@ -156,37 +101,23 @@ jobs:
           }
 
           android {
-
               namespace 'com.rabilu.quranaudio'
-
               compileSdk 35
 
               defaultConfig {
-
                   applicationId 'com.rabilu.quranaudio'
-
                   minSdk 23
-
                   targetSdk 35
-
                   versionCode 1
-
                   versionName '1.0'
               }
 
               compileOptions {
-
                   sourceCompatibility JavaVersion.VERSION_17
-
                   targetCompatibility JavaVersion.VERSION_17
               }
           }
           EOF
-
-
-          # -------------------------------------------------
-          # ANDROID MANIFEST
-          # -------------------------------------------------
 
           cat > android-app/app/src/main/AndroidManifest.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
@@ -198,33 +129,20 @@ jobs:
                   android:name="android.permission.INTERNET" />
 
               <application
-
                   android:allowBackup="true"
-
                   android:icon="@drawable/icon"
-
                   android:label="HAFIZ Yusuf Shuaibu Bauchi Complete Qur'an"
-
                   android:theme="@style/AppTheme"
-
                   android:usesCleartextTraffic="true">
 
                   <activity
-
                       android:name=".MainActivity"
-
                       android:screenOrientation="portrait"
-
                       android:exported="true">
 
                       <intent-filter>
-
-                          <action
-                              android:name="android.intent.action.MAIN" />
-
-                          <category
-                              android:name="android.intent.category.LAUNCHER" />
-
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
                       </intent-filter>
 
                   </activity>
@@ -233,11 +151,6 @@ jobs:
 
           </manifest>
           EOF
-
-
-          # -------------------------------------------------
-          # STYLES
-          # -------------------------------------------------
 
           cat > android-app/app/src/main/res/values/styles.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
@@ -248,35 +161,16 @@ jobs:
                   name="AppTheme"
                   parent="android:style/Theme.Material.Light.NoActionBar">
 
-                  <item name="android:fontFamily">
-                      sans
-                  </item>
-
-                  <item name="android:colorAccent">
-                      #075e54
-                  </item>
-
-                  <item name="android:navigationBarColor">
-                      #075e54
-                  </item>
-
-                  <item name="android:statusBarColor">
-                      #075e54
-                  </item>
-
-                  <item name="android:windowLightStatusBar">
-                      false
-                  </item>
+                  <item name="android:fontFamily">sans</item>
+                  <item name="android:colorAccent">#075e54</item>
+                  <item name="android:navigationBarColor">#075e54</item>
+                  <item name="android:statusBarColor">#075e54</item>
+                  <item name="android:windowLightStatusBar">false</item>
 
               </style>
 
           </resources>
           EOF
-
-
-          # -------------------------------------------------
-          # MAIN ACTIVITY
-          # -------------------------------------------------
 
           cat > android-app/app/src/main/java/com/rabilu/quranaudio/MainActivity.java <<'EOF'
           package com.rabilu.quranaudio;
@@ -302,47 +196,27 @@ jobs:
 
                   setContentView(webView);
 
-                  WebSettings settings =
-                      webView.getSettings();
+                  WebSettings settings = webView.getSettings();
 
                   settings.setJavaScriptEnabled(true);
-
                   settings.setDomStorageEnabled(true);
-
                   settings.setAllowFileAccess(true);
-
                   settings.setAllowContentAccess(true);
-
                   settings.setMediaPlaybackRequiresUserGesture(false);
 
                   webView.setWebViewClient(
                       new WebViewClient()
                   );
 
-
-                  /*
-                   * =========================================
-                   * NATIVE ANDROID SHARE BRIDGE
-                   * =========================================
-                   */
-
                   webView.addJavascriptInterface(
                       new AndroidShare(),
                       "AndroidShare"
                   );
 
-
                   webView.loadUrl(
                       "file:///android_asset/index.html"
                   );
               }
-
-
-              /*
-               * =============================================
-               * ANDROID SHARE CLASS
-               * =============================================
-               */
 
               public class AndroidShare {
 
@@ -355,47 +229,31 @@ jobs:
 
                       String message = text;
 
-
-                      /*
-                       * The APK uses file:// internally.
-                       * We do not share that internal URL.
-                       */
-
                       if (
                           url != null &&
                           !url.isEmpty() &&
                           !url.startsWith("file:")
                       ) {
-
                           message =
                               message +
                               "\n\n" +
                               url;
                       }
 
-
                       Intent sendIntent =
-                          new Intent(
-                              Intent.ACTION_SEND
-                          );
+                          new Intent(Intent.ACTION_SEND);
 
-
-                      sendIntent.setType(
-                          "text/plain"
-                      );
-
+                      sendIntent.setType("text/plain");
 
                       sendIntent.putExtra(
                           Intent.EXTRA_SUBJECT,
                           title
                       );
 
-
                       sendIntent.putExtra(
                           Intent.EXTRA_TEXT,
                           message
                       );
-
 
                       Intent chooser =
                           Intent.createChooser(
@@ -403,19 +261,9 @@ jobs:
                               "Share App"
                           );
 
-
-                      startActivity(
-                          chooser
-                      );
+                      startActivity(chooser);
                   }
               }
-
-
-              /*
-               * =============================================
-               * BACK BUTTON
-               * =============================================
-               */
 
               @Override
               public void onBackPressed() {
@@ -424,25 +272,13 @@ jobs:
                       webView != null &&
                       webView.canGoBack()
                   ) {
-
                       webView.goBack();
-
                   } else {
-
                       super.onBackPressed();
                   }
               }
           }
           EOF
-
-          echo "======================================"
-          echo "ANDROID PROJECT CREATED"
-          echo "======================================"
-
-
-      # =====================================================
-      # 7. COPY WEB APP INTO ANDROID ASSETS
-      # =====================================================
 
       - name: Copy Quran App Files
         run: |
@@ -463,47 +299,29 @@ jobs:
           cp "quran-web/service-worker.js" \
              "android-app/app/src/main/assets/"
 
-
           cp -r "quran-web/assets" \
              "android-app/app/src/main/assets/"
-
 
           cp -r "quran-web/audio" \
              "android-app/app/src/main/assets/"
 
-
-          # Android launcher icon
           cp "quran-web/assets/icon.png" \
              "android-app/app/src/main/res/drawable/icon.png"
 
-
-          echo "======================================"
-          echo "QURAN APP FILES COPIED"
-          echo "======================================"
-
-
-      # =====================================================
-      # 8. FIX NATIVE SHARE FUNCTION IN SCRIPT.JS
-      # =====================================================
+          echo "Quran app files copied successfully."
 
       - name: Fix Share Function
         run: |
           set -e
 
           python3 <<'PY'
-
           from pathlib import Path
-
 
           path = Path(
               "android-app/app/src/main/assets/script.js"
           )
 
-
-          text = path.read_text(
-              encoding="utf-8"
-          )
-
+          text = path.read_text(encoding="utf-8")
 
           start_marker = (
               "/* =====================================================\n"
@@ -511,31 +329,22 @@ jobs:
               "   ===================================================== */"
           )
 
-
-          start = text.find(
-              start_marker
-          )
-
+          start = text.find(start_marker)
 
           if start == -1:
-
               raise SystemExit(
-                  "ERROR: SHARE section was not found in script.js"
+                  "ERROR: SHARE section was not found."
               )
-
 
           next_marker = text.find(
               "/* =====================================================",
               start + len(start_marker)
           )
 
-
           if next_marker == -1:
-
               raise SystemExit(
                   "ERROR: Next script section was not found."
               )
-
 
           new_share = r'''/* =====================================================
    SHARE
@@ -556,11 +365,6 @@ if (shareAppButton) {
             const url =
                 window.location.href;
 
-
-            /* =============================================
-               ANDROID NATIVE SHARE
-               ============================================= */
-
             if (
                 window.AndroidShare &&
                 typeof window.AndroidShare.shareText === "function"
@@ -575,11 +379,6 @@ if (shareAppButton) {
                 return;
             }
 
-
-            /* =============================================
-               NORMAL WEB SHARE
-               ============================================= */
-
             if (
                 navigator.share &&
                 typeof navigator.share === "function"
@@ -588,13 +387,9 @@ if (shareAppButton) {
                 try {
 
                     await navigator.share({
-
                         title: title,
-
                         text: text,
-
                         url: url
-
                     });
 
                 } catch (error) {
@@ -603,16 +398,10 @@ if (shareAppButton) {
                         "Share cancelled:",
                         error
                     );
-
                 }
 
                 return;
             }
-
-
-            /* =============================================
-               FALLBACK: COPY LINK
-               ============================================= */
 
             try {
 
@@ -621,9 +410,7 @@ if (shareAppButton) {
                     typeof navigator.clipboard.writeText === "function"
                 ) {
 
-                    await navigator.clipboard.writeText(
-                        url
-                    );
+                    await navigator.clipboard.writeText(url);
 
                     showToast(
                         "App link copied"
@@ -638,14 +425,11 @@ if (shareAppButton) {
                     "Clipboard failed:",
                     error
                 );
-
             }
-
 
             showToast(
                 "Sharing is not available"
             );
-
         }
     );
 
@@ -653,145 +437,75 @@ if (shareAppButton) {
 
 '''
 
-
           text = (
               text[:start]
               + new_share
               + text[next_marker:]
           )
 
-
           path.write_text(
               text,
               encoding="utf-8"
           )
 
-
-          print(
-              "Share function fixed successfully."
-          )
-
+          print("Share function fixed successfully.")
           PY
-
-
-      # =====================================================
-      # 9. VERIFY ANDROID PROJECT
-      # =====================================================
 
       - name: Verify Android Project
         run: |
           set -e
 
-          echo "======================================"
-          echo "VERIFYING ANDROID PROJECT"
-          echo "======================================"
-
-
-          test -f \
-            "android-app/settings.gradle"
-
-
-          test -f \
-            "android-app/build.gradle"
-
-
-          test -f \
-            "android-app/app/build.gradle"
-
+          test -f "android-app/settings.gradle"
+          test -f "android-app/build.gradle"
+          test -f "android-app/app/build.gradle"
 
           test -f \
             "android-app/app/src/main/AndroidManifest.xml"
 
-
           test -f \
             "android-app/app/src/main/java/com/rabilu/quranaudio/MainActivity.java"
-
 
           test -f \
             "android-app/app/src/main/assets/index.html"
 
-
           test -f \
             "android-app/app/src/main/assets/style.css"
 
-
           test -f \
             "android-app/app/src/main/assets/script.js"
-
-
-          test -f \
-            "android-app/app/src/main/assets/manifest.json"
-
-
-          test -f \
-            "android-app/app/src/main/assets/service-worker.js"
-
 
           test -f \
             "android-app/app/src/main/assets/assets/icon.png"
 
-
           test -f \
             "android-app/app/src/main/assets/assets/splash.png"
-
 
           test -f \
             "android-app/app/src/main/res/drawable/icon.png"
 
-
           test -d \
             "android-app/app/src/main/assets/audio"
-
 
           grep -q "AndroidShare" \
             "android-app/app/src/main/java/com/rabilu/quranaudio/MainActivity.java"
 
-
           grep -q "AndroidShare" \
             "android-app/app/src/main/assets/script.js"
 
-
-          echo "======================================"
-          echo "ANDROID PROJECT VERIFIED"
-          echo "NATIVE SHARE VERIFIED"
-          echo "ICON VERIFIED"
-          echo "======================================"
-
-
-      # =====================================================
-      # 10. BUILD APK
-      # =====================================================
+          echo "Android project verified."
 
       - name: Build Debug APK
         working-directory: android-app
         run: |
           set -e
 
-          echo "======================================"
-          echo "BUILDING APK"
-          echo "======================================"
-
           gradle assembleDebug \
             --no-daemon \
-            --stacktrace \
-            --warning-mode all
-
-          echo "======================================"
-          echo "APK BUILD FINISHED"
-          echo "======================================"
-
-
-      # =====================================================
-      # 11. VERIFY APK EXISTS
-      # =====================================================
+            --stacktrace
 
       - name: Verify APK
         run: |
           set -e
-
-          echo "======================================"
-          echo "SEARCHING FOR APK"
-          echo "======================================"
 
           find android-app/app/build/outputs \
             -type f \
@@ -805,14 +519,7 @@ if (shareAppButton) {
             -print -quit
           )"
 
-          echo "======================================"
-          echo "APK FOUND SUCCESSFULLY"
-          echo "======================================"
-
-
-      # =====================================================
-      # 12. UPLOAD APK ARTIFACT
-      # =====================================================
+          echo "APK found successfully."
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -821,28 +528,15 @@ if (shareAppButton) {
           path: "android-app/app/build/outputs/apk/debug/*.apk"
           if-no-files-found: error
 
-
-      # =====================================================
-      # 13. BUILD SUMMARY
-      # =====================================================
-
       - name: Build Summary
         run: |
-          echo ""
-          echo "=============================================="
-          echo " HAFIZ YUSUF SHUAIBU BAUCHI COMPLETE QUR'AN"
-          echo "=============================================="
-          echo ""
-          echo "APK BUILD: SUCCESS"
-          echo "NATIVE SHARE: ENABLED"
-          echo "APP ICON: INCLUDED"
-          echo "SPLASH SCREEN: INCLUDED"
-          echo "AUDIO FOLDER: INCLUDED"
-          echo ""
-          echo "APK:"
+          echo "=========================================="
+          echo "APK BUILD SUCCESS"
+          echo "NATIVE SHARE ENABLED"
+          echo "APP ICON INCLUDED"
+          echo "=========================================="
+
           find android-app/app/build/outputs \
             -type f \
             -name "*.apk" \
             -print
-          echo ""
-          echo "=============================================="
