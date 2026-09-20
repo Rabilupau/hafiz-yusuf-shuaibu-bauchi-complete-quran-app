@@ -1,6 +1,6 @@
-name: Build HAFIZ Yusuf Shuaibu Bauchi Complete Quran APK
+name: HAFIZ Yusuf Shuaibu Bauchi Complete Quran APK
 
-on:
+"on":
   workflow_dispatch:
   push:
     branches:
@@ -9,34 +9,31 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Java
+      - name: Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: Setup Gradle
+      - name: Gradle 8.7
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.7"
 
-      - name: Extract Web App
-        shell: bash
+      - name: Extract App
         run: |
           set -e
           unzip -q "Qur'an-Audio-App Original.zip" -d quran-web
-          echo "Web app extracted"
+          echo "APP EXTRACTED"
 
-      - name: Check Files
-        shell: bash
+      - name: Check App
         run: |
           set -e
-
           test -f "quran-web/index.html"
           test -f "quran-web/style.css"
           test -f "quran-web/script.js"
@@ -45,11 +42,9 @@ jobs:
           test -f "quran-web/assets/icon.png"
           test -f "quran-web/assets/splash.png"
           test -d "quran-web/audio"
-
-          echo "All web files found"
+          echo "APP FILES OK"
 
       - name: Create Android Project
-        shell: bash
         run: |
           set -e
 
@@ -267,146 +262,37 @@ jobs:
           }
           EOF
 
-      - name: Copy App Files
-        shell: bash
+      - name: Copy App
         run: |
           set -e
 
-          cp "quran-web/index.html" "android-app/app/src/main/assets/"
-          cp "quran-web/style.css" "android-app/app/src/main/assets/"
-          cp "quran-web/script.js" "android-app/app/src/main/assets/"
-          cp "quran-web/manifest.json" "android-app/app/src/main/assets/"
-          cp "quran-web/service-worker.js" "android-app/app/src/main/assets/"
+          cp "quran-web/index.html" \
+             "android-app/app/src/main/assets/"
 
-          cp -r "quran-web/assets" "android-app/app/src/main/assets/"
-          cp -r "quran-web/audio" "android-app/app/src/main/assets/"
+          cp "quran-web/style.css" \
+             "android-app/app/src/main/assets/"
+
+          cp "quran-web/script.js" \
+             "android-app/app/src/main/assets/"
+
+          cp "quran-web/manifest.json" \
+             "android-app/app/src/main/assets/"
+
+          cp "quran-web/service-worker.js" \
+             "android-app/app/src/main/assets/"
+
+          cp -r "quran-web/assets" \
+             "android-app/app/src/main/assets/"
+
+          cp -r "quran-web/audio" \
+             "android-app/app/src/main/assets/"
 
           cp "quran-web/assets/icon.png" \
              "android-app/app/src/main/res/drawable/icon.png"
 
-      - name: Fix Share
-        shell: bash
-        run: |
-          python3 <<'PY'
-          from pathlib import Path
-
-          p = Path("android-app/app/src/main/assets/script.js")
-          s = p.read_text(encoding="utf-8")
-
-          marker = "/* =====================================================\n   SHARE\n   ===================================================== */"
-
-          start = s.find(marker)
-
-          if start == -1:
-              raise SystemExit("Share section not found")
-
-          end = s.find(
-              "/* =====================================================",
-              start + len(marker)
-          )
-
-          if end == -1:
-              raise SystemExit("End of Share section not found")
-
-          replacement = r'''/* =====================================================
-   SHARE
-   ===================================================== */
-
-if (shareAppButton) {
-
-    shareAppButton.addEventListener(
-        "click",
-        async () => {
-
-            const title =
-                "HAFIZ Yusuf Shuaibu Bauchi Complete Qur’an";
-
-            const text =
-                "Listen to the Holy Qur’an Surah by Surah — HAFIZ Yusuf Shuaibu Bauchi Complete Qur’an.";
-
-            const url =
-                window.location.href;
-
-            if (
-                window.AndroidShare &&
-                typeof window.AndroidShare.shareText === "function"
-            ) {
-
-                window.AndroidShare.shareText(
-                    title,
-                    text,
-                    url
-                );
-
-                return;
-            }
-
-            if (
-                navigator.share &&
-                typeof navigator.share === "function"
-            ) {
-
-                try {
-
-                    await navigator.share({
-                        title: title,
-                        text: text,
-                        url: url
-                    });
-
-                } catch (error) {
-
-                    console.log(
-                        "Share cancelled:",
-                        error
-                    );
-                }
-
-                return;
-            }
-
-            try {
-
-                if (
-                    navigator.clipboard &&
-                    typeof navigator.clipboard.writeText === "function"
-                ) {
-
-                    await navigator.clipboard.writeText(url);
-
-                    showToast("App link copied");
-
-                    return;
-                }
-
-            } catch (error) {
-
-                console.log(
-                    "Clipboard failed:",
-                    error
-                );
-            }
-
-            showToast(
-                "Sharing is not available"
-            );
-        }
-    );
-
-}
-
-'''
-
-          p.write_text(
-              s[:start] + replacement + s[end:],
-              encoding="utf-8"
-          )
-
-          print("Share function fixed")
-          PY
+          echo "FILES COPIED"
 
       - name: Verify Project
-        shell: bash
         run: |
           set -e
 
@@ -414,31 +300,24 @@ if (shareAppButton) {
           test -f "android-app/build.gradle"
           test -f "android-app/app/build.gradle"
           test -f "android-app/app/src/main/AndroidManifest.xml"
-          test -f "android-app/app/src/main/java/com/rabilu/quranaudio/MainActivity.java"
           test -f "android-app/app/src/main/assets/index.html"
-          test -f "android-app/app/src/main/assets/style.css"
           test -f "android-app/app/src/main/assets/script.js"
+          test -f "android-app/app/src/main/assets/style.css"
           test -f "android-app/app/src/main/assets/assets/icon.png"
           test -f "android-app/app/src/main/assets/assets/splash.png"
-          test -d "android-app/app/src/main/assets/audio"
 
           grep -q "AndroidShare" \
             "android-app/app/src/main/java/com/rabilu/quranaudio/MainActivity.java"
 
-          grep -q "AndroidShare" \
-            "android-app/app/src/main/assets/script.js"
-
-          echo "Project verification successful"
+          echo "PROJECT VERIFIED"
 
       - name: Build APK
-        shell: bash
         working-directory: android-app
         run: |
           set -e
           gradle assembleDebug --no-daemon --stacktrace
 
-      - name: Verify APK
-        shell: bash
+      - name: Check APK
         run: |
           set -e
 
@@ -448,16 +327,16 @@ if (shareAppButton) {
             -print -quit)
 
           if [ -z "$APK" ]; then
-            echo "APK was not created"
+            echo "APK NOT FOUND"
             exit 1
           fi
 
-          echo "APK CREATED:"
+          echo "APK FOUND:"
           echo "$APK"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: HAFIZ-Yusuf-Shuaibu-Bauchi-Complete-Quran-APK
-          path: android-app/app/build/outputs/apk/debug/*.apk
+          path: "android-app/app/build/outputs/apk/debug/*.apk"
           if-no-files-found: error
